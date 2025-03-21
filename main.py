@@ -5,7 +5,8 @@ import pandas as pd
 from input import input_data
 import matplotlib.pyplot as plt
 
-TRAINING_CHUNKS = 15
+TRAINING_CHUNKS = 10
+TEST_CHUNKS = 5
 
 def plot_cumulative_returns(total_returns, initial_investment=1000):
     decimal_returns = [r / 100 for r in total_returns]
@@ -20,54 +21,48 @@ def plot_cumulative_returns(total_returns, initial_investment=1000):
     plt.grid(True)
     plt.show()
 
-# TODO: Adding enough data so averages can be computes easily. 500 data points + 100 points lost due to avergaing
+# DONE: Have different individuals for short and long. Develop 2 populations in parallel for both short and long
+# TODO: Let the algo decide which moving average is profitable for the fiven period (SMA, EMA, WMA)
+# TODO: play with different fitness functions to see the output.
+# TODO: have 2 coeficients that represent the bias of the market (trending, ranging) their sum is 1 - like probabilities
 if __name__ == "__main__":
     
     total_returns = []
     total_drawdowns = []
     
-    n = len(input_data.TQQQ_CHUNKS)
-    for i in range(n - TRAINING_CHUNKS):
-        print("Chunk tested: ",  i + TRAINING_CHUNKS, " / ", n)
+    n = len(input_data.BTC_CHUNKS)
+    for i in range(0, n - TRAINING_CHUNKS - TEST_CHUNKS, TEST_CHUNKS):
+        print(" ")
+        print("##############################################")
+        print("Iteration: ",  i, " / ", n - TRAINING_CHUNKS - TEST_CHUNKS)
         
-        fitness_scores_generation = []
-
         train_data = pd.concat(input_data.BTC_CHUNKS[i : i+TRAINING_CHUNKS])
-        test_data = pd.concat([input_data.BTC_CHUNKS[i+TRAINING_CHUNKS - 1 : i+TRAINING_CHUNKS]])
-            
-        population = genetic_algorithm.initial_population
+        test_data = pd.concat(input_data.BTC_CHUNKS[i+TRAINING_CHUNKS-2 : i+TRAINING_CHUNKS+TEST_CHUNKS])
         
-        for index in range(constants.GENERATIONS):
-            print(i, " - Generation: ", index)
-            individuals_performance = backtest.runBackTest(population, train_data)
-            individuals_score = genetic_algorithm.fitness_function(individuals_performance)
-            
-            fitness_scores = np.array([ind[-1] for ind in individuals_score], dtype=np.float32)
-            fitness_scores_generation.append(np.sum(fitness_scores) / len(fitness_scores))
-            
-            population = genetic_algorithm.create_new_generation(individuals_score)
-                
-        print(fitness_scores_generation)
-        print('')
-            
-        print("Buy and hold: ")
-        total_return, max_drawdown = (backtest.calculate_buy_and_hold_metrics(test_data))
-        print("Total Return: ", float(total_return * 100), '%')
-        print("Max Drawdown: ", float(max_drawdown * 100), '%')
+        population_long = genetic_algorithm.run_generation(train_data, False)
+        individuals_performance_long = backtest.runBackTest(population_long[0:constants.TOP_PICK], test_data, False)
         
-        print('')
-        
-        individuals_performance = backtest.runBackTest(population[0:5], test_data)
+        population_short = genetic_algorithm.run_generation(train_data, True)
+        individuals_performance_short = backtest.runBackTest(population_short[0:constants.TOP_PICK], test_data, True)
 
-        returns = np.array([ind[4] for ind in individuals_performance])
-        drawdowns = np.array([ind[5] for ind in individuals_performance]) 
+        returns_long = np.array([ind[4] for ind in individuals_performance_long])
+        drawdowns_long = np.array([ind[5] for ind in individuals_performance_long]) 
         
-        average_return = np.sum(returns * 0.2)
-        average_drawdown = np.sum(drawdowns * 0.2)
+        returns_short = np.array([ind[4] for ind in individuals_performance_short])
+        drawdowns_short = np.array([ind[5] for ind in individuals_performance_short]) 
         
-        print("Strategy Performance; ", average_return, average_drawdown)
+        average_return_long = np.sum(returns_long * 0.25)
+        average_drawdown_long = np.sum(drawdowns_long * 0.25)
         
-        total_returns.append(average_return)
-        total_drawdowns.append(average_drawdown)
+        average_return_short= np.sum(returns_short * 0.25)
+        average_drawdown_short= np.sum(drawdowns_short * 0.25)
+        
+        print("Buy & Hold return: ", individuals_performance_long[0][6], "%")        
+        print("Strategy Performance LONG: ", average_return_long, "% | Max drawdown: ",average_drawdown_long, "%")
+        print("Strategy Performance SHORT: ", average_return_short, "% | Max drawdown: ",average_drawdown_short, "%")
+        
+        total_returns.append(average_return_long)
+        total_drawdowns.append(average_return_short)
     
     plot_cumulative_returns(total_returns)
+    plot_cumulative_returns(total_drawdowns)

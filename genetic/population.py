@@ -18,8 +18,8 @@ def generate_Short_MA():
 def generate_Long_MA():
     return generate_random_sample(var_types.LONG_MA)
 
-def generate_Stop_Loss():
-    return generate_random_sample(var_types.STOP_LOSS, is_float=True, decimals=1)
+def generate_Stop_Loss_Multiplier():
+    return generate_random_sample(var_types.STOP_LOSS_MULTIPLIER, is_float=True, decimals=1)
 
 def generate_Position_Size():
     return generate_random_sample(var_types.POSITION_SIZE, is_float=True, decimals=3)
@@ -32,7 +32,7 @@ def generatePopulation(population = 100):
         individual = (
             generate_Short_MA(),
             generate_Long_MA(),
-            generate_Stop_Loss(),
+            generate_Stop_Loss_Multiplier(),
             generate_Position_Size(),
         )
         
@@ -43,7 +43,7 @@ def generatePopulation(population = 100):
     individual_dtype = np.dtype([
         (var_types.SHORT_MA, np.int32),
         (var_types.LONG_MA, np.int32),
-        (var_types.STOP_LOSS, np.float32),
+        (var_types.STOP_LOSS_MULTIPLIER, np.float32),
         (var_types.POSITION_SIZE, np.float32)
     ])
     

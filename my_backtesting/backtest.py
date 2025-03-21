@@ -3,46 +3,53 @@ from . import strategies
 from . import constant
 from shared import var_types
 import numpy as np
+import pandas as pd
+    
 
-def runBackTest(population, data_set):
+def runBackTest(population, data_set, isShortOnly = False):
     results_list = []
     
     for offspring in population:
         short_ma = offspring[0]
         long_ma = offspring[1]
-        stop_loss = offspring[2]
+        stop_loss_multiplier = offspring[2]
         position_size = offspring[3]
 
-        CrossOverStrategy = strategies.crateCrossOverStrategy(short_ma, long_ma, stop_loss, position_size)
-        bt = Backtest(data_set, CrossOverStrategy, cash=constant.INITIAL_CAPITAL, commission=constant.COMMISSION)
+        if isShortOnly:
+            ShortOnlyCrossOverStrategy = strategies.createShortOnlyCrossOverStrategy(short_ma, long_ma, stop_loss_multiplier, position_size)
+            bt = Backtest(data_set, ShortOnlyCrossOverStrategy, cash=constant.INITIAL_CAPITAL, commission=constant.COMMISSION)
+        else:
+            LongOnlyCrossOverStrategy = strategies.createLongOnlyCrossOverStrategy(short_ma, long_ma, stop_loss_multiplier, position_size)
+            bt = Backtest(data_set, LongOnlyCrossOverStrategy, cash=constant.INITIAL_CAPITAL, commission=constant.COMMISSION)
+        
         result = bt.run()
+        
+        duration = result[constant.DURATION]
+        if isinstance(duration, pd.Timedelta):
+            duration = duration / pd.Timedelta(days=1)
+            
         results_list.append((
-            short_ma, long_ma, stop_loss, position_size, 
+            short_ma, long_ma, stop_loss_multiplier, position_size, 
             result[constant.RETURN], 
-            result[constant.MAX_DRAWDOWN]
+            result[constant.MAX_DRAWDOWN],
+            result[constant.BUY_AND_HOLD],
+            duration,
+            result[constant.TRADES_NUMBER],
+            result[constant.EXPOSURE_TIME]
         ))
     
     dtype = np.dtype([
         (var_types.SHORT_MA, np.int32),
         (var_types.LONG_MA, np.int32),
-        (var_types.STOP_LOSS, np.float32),
+        (var_types.STOP_LOSS_MULTIPLIER, np.float32),
         (var_types.POSITION_SIZE, np.float32),
         (var_types.RETURN, np.float32),
-        (var_types.MAX_DRAWDOWN, np.float32)
+        (var_types.MAX_DRAWDOWN, np.float32),
+        (var_types.BUY_AND_HOLD, np.float32),
+        (var_types.DURATION, np.float32),
+        (var_types.TRADES_NUMBER, np.float32),
+        (var_types.EXPOSURE_TIME, np.float32),
     ])
     
     return np.array(results_list, dtype=dtype)
 
-def calculate_buy_and_hold_metrics(price_data):
-    if 'Close' not in price_data.columns:
-        raise ValueError("DataFrame must contain a 'Close' column.")
-
-    initial_price = price_data['Close'].iloc[0]
-    final_price = price_data['Close'].iloc[-1]
-    total_return = (final_price - initial_price) / initial_price
-
-    cumulative_max = price_data['Close'].cummax()
-    drawdown = (price_data['Close'] - cumulative_max) / cumulative_max
-    max_drawdown = drawdown.min()
-
-    return total_return, max_drawdown

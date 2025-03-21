@@ -1,8 +1,20 @@
 import pandas as pd
 import numpy as np
 
-def simple_moving_average(series, period):
-    return pd.Series(series).rolling(window=period).mean()
+def average_true_range(high, low, close, period=14):
+    high = pd.Series(high)
+    low = pd.Series(low)
+    close = pd.Series(close)
+
+    high_low = high - low
+    high_close = (high - close.shift(1)).abs()
+    low_close = (low - close.shift(1)).abs()
+
+    true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+
+    atr = true_range.ewm(span=period, adjust=False).mean()
+
+    return atr
 
 def exponential_moving_average(series, period):
     series = pd.Series(series)
@@ -11,12 +23,6 @@ def exponential_moving_average(series, period):
 def weighted_moving_average(series, period):
     weights = np.arange(1, period + 1)
     return pd.Series(series).rolling(window=period).apply(lambda x: np.dot(x, weights) / weights.sum(), raw=True)
-
-def hull_moving_average(series, period):
-    wma_half = weighted_moving_average(series, period // 2)
-    wma_full = weighted_moving_average(series, period)
-    hma = weighted_moving_average(2 * wma_half - wma_full, int(np.sqrt(period)))
-    return hma
 
 def double_exponential_moving_average(series, period):
     series = pd.Series(series)

@@ -1,22 +1,17 @@
 from . import population
 from . import constants
 from shared import var_types
+from my_backtesting import backtest
 import random
 import copy
 import numpy as np
 
-initial_population = population.generatePopulation(constants.POPULATION_SIZE)
-
 def fitness_function(individuals):
-    scores = np.maximum(0,
-        constants.TOTAL_RETURN_COEFICIENT * individuals[var_types.RETURN] + 
-        constants.MAX_DRAWDOWN_COEFICIENT * individuals[var_types.MAX_DRAWDOWN]
-    )
-            
+    scores = np.maximum(0, constants.TOTAL_RETURN_COEFICIENT * individuals[var_types.RETURN])
     scored_individuals = np.zeros(len(individuals), dtype=constants.INDIVIDUAL_TYPE_SCORE)
     scored_individuals[var_types.SHORT_MA] = individuals[var_types.SHORT_MA]
     scored_individuals[var_types.LONG_MA] = individuals[var_types.LONG_MA]
-    scored_individuals[var_types.STOP_LOSS] = individuals[var_types.STOP_LOSS]
+    scored_individuals[var_types.STOP_LOSS_MULTIPLIER] = individuals[var_types.STOP_LOSS_MULTIPLIER]
     scored_individuals[var_types.POSITION_SIZE] = individuals[var_types.POSITION_SIZE]
     scored_individuals[var_types.SCORE] = scores
 
@@ -37,7 +32,7 @@ def wheel_of_fortune(individuals):
     selected_individuals = np.zeros(len(selected_individuals_wheel), dtype=constants.INDIVIDUAL_TYPE)
     selected_individuals[var_types.SHORT_MA] = selected_individuals_wheel[var_types.SHORT_MA]
     selected_individuals[var_types.LONG_MA] = selected_individuals_wheel[var_types.LONG_MA]
-    selected_individuals[var_types.STOP_LOSS] = selected_individuals_wheel[var_types.STOP_LOSS]
+    selected_individuals[var_types.STOP_LOSS_MULTIPLIER] = selected_individuals_wheel[var_types.STOP_LOSS_MULTIPLIER]
     selected_individuals[var_types.POSITION_SIZE] = selected_individuals_wheel[var_types.POSITION_SIZE]
 
     return selected_individuals
@@ -76,7 +71,7 @@ def mutation(individuals):
                 elif index == 1:
                     mutated_individual[1] = population.generate_Long_MA()
                 elif index == 2:
-                    mutated_individual[2] = population.generate_Stop_Loss()
+                    mutated_individual[2] = population.generate_Stop_Loss_Multiplier()
                 elif index == 3:
                     mutated_individual[3] = population.generate_Position_Size()
 
@@ -90,7 +85,7 @@ def return_top_individuals(individuals):
     selected_individuals = np.zeros(len(top_individuals), dtype=constants.INDIVIDUAL_TYPE)
     selected_individuals[var_types.SHORT_MA] = top_individuals[var_types.SHORT_MA]
     selected_individuals[var_types.LONG_MA] = top_individuals[var_types.LONG_MA]
-    selected_individuals[var_types.STOP_LOSS] = top_individuals[var_types.STOP_LOSS]
+    selected_individuals[var_types.STOP_LOSS_MULTIPLIER] = top_individuals[var_types.STOP_LOSS_MULTIPLIER]
     selected_individuals[var_types.POSITION_SIZE] = top_individuals[var_types.POSITION_SIZE]
     
     return selected_individuals
@@ -107,3 +102,37 @@ def create_new_generation(individuals):
     offsprings = mutation(offsprings)
 
     return np.concatenate((top_individuals, offsprings), axis=0)
+
+##
+## This method runs the genetic algotihm until fitness function has no improvement ##
+##
+def run_generation(train_data, isShort = False):
+    fitness_scores_generation = []
+    offsprings = population.generatePopulation(constants.POPULATION_SIZE)
+    
+    index = 0
+    while True:
+        print(f"Generation: {index}")
+        
+        individuals_performance = backtest.runBackTest(offsprings, train_data, isShort)
+        individuals_score = fitness_function(individuals_performance)
+        
+        fitness_scores = np.array([ind[-1] for ind in individuals_score], dtype=np.float32)
+        fitness_scores_generation.append(np.sum(fitness_scores[0:constants.TOP_PICK]))
+        
+        print("Fitness score: ", fitness_scores_generation[-1])
+        
+        if len(fitness_scores_generation) > constants.NO_IMPROVEMENET:
+            recent_scores = np.array(fitness_scores_generation[-constants.NO_IMPROVEMENET:])
+            improvement = np.max(recent_scores) - np.min(recent_scores)
+
+            if improvement < constants.MIN_IMPROVEMENT:
+                print("Plateu")
+                break
+    
+        offsprings = create_new_generation(individuals_score)
+        index += 1
+    
+    print('')
+    print(isShort, "Best offsprings: ", offsprings[0], offsprings[1], offsprings[2], offsprings[3])
+    return offsprings

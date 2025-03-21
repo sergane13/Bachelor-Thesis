@@ -1,5 +1,6 @@
 from pandas import read_csv
 import pandas as pd
+import matplotlib.pyplot as plt
 
 CHUNK_SIZE = 100
 
@@ -44,7 +45,7 @@ btc.rename(columns={
     'Volume USD': 'Volume'
 }, inplace=True)
 BTC = btc[['Open', 'High', 'Low', 'Close', 'Volume']]
-
+BTC = BTC[30000:40000]
 # For bitcoin data that would be 116 chunks (58k / 500)
 BTC_CHUNKS = split_into_chunks(BTC, CHUNK_SIZE)
 
@@ -60,3 +61,16 @@ tqqq['Low'] = tqqq['Close']
 tqqq['Volume'] = 0
 TQQQ = tqqq[['Open', 'High', 'Low', 'Close', 'Volume']]
 TQQQ_CHUNKS = split_into_chunks(TQQQ, CHUNK_SIZE)
+
+# plt.figure(figsize=(14, 6))
+
+# for i, chunk in enumerate(BTC_CHUNKS):
+#     plt.plot(chunk.index, chunk['Close'], label=f'Chunk {i+1}')
+
+# plt.title('BTC Close Price - All Chunks')
+# plt.xlabel('Date')
+# plt.ylabel('Price [$]')
+# plt.legend(loc='upper left', fontsize='small', ncol=2)
+# plt.grid(True)
+# plt.tight_layout()
+# plt.show()
