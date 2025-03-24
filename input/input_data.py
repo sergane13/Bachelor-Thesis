@@ -45,7 +45,6 @@ btc.rename(columns={
     'Volume USD': 'Volume'
 }, inplace=True)
 BTC = btc[['Open', 'High', 'Low', 'Close', 'Volume']]
-BTC = BTC[30000:40000]
 # For bitcoin data that would be 116 chunks (58k / 500)
 BTC_CHUNKS = split_into_chunks(BTC, CHUNK_SIZE)
 

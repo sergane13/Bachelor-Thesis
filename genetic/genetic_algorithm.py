@@ -7,7 +7,7 @@ import copy
 import numpy as np
 
 def fitness_function(individuals):
-    scores = np.maximum(0, constants.TOTAL_RETURN_COEFICIENT * individuals[var_types.RETURN])
+    scores = np.maximum(0, individuals[var_types.RETURN])
     scored_individuals = np.zeros(len(individuals), dtype=constants.INDIVIDUAL_TYPE_SCORE)
     scored_individuals[var_types.SHORT_MA] = individuals[var_types.SHORT_MA]
     scored_individuals[var_types.LONG_MA] = individuals[var_types.LONG_MA]
@@ -134,5 +134,5 @@ def run_generation(train_data, isShort = False):
         index += 1
     
     print('')
-    print(isShort, "Best offsprings: ", offsprings[0], offsprings[1], offsprings[2], offsprings[3])
-    return offsprings
+    print(isShort, "Best offsprings: ", offsprings[0], offsprings[1])
+    return offsprings, fitness_scores_generation[-1]

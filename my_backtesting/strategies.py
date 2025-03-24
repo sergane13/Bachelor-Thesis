@@ -10,6 +10,10 @@ def createCrossOverStrategy(short_period, long_period, stop_loss_multiplier = 0.
             self.atr = self.I(moving_average.average_true_range, self.data.High, self.data.Low, self.data.Close, 14)
             
         def next(self):
+            min_bars = max(short_period, long_period, 14)
+            if len(self.data) < min_bars:
+                return
+            
             cash_available = self.equity * position_size
             size = int(cash_available / self.data.Close[-1])
 
@@ -45,6 +49,10 @@ def createLongOnlyCrossOverStrategy(short_period, long_period, stop_loss_multipl
             self.atr = self.I(moving_average.average_true_range, self.data.High, self.data.Low, self.data.Close, 14)
 
         def next(self):
+            min_bars = max(short_period, long_period, 14)
+            if len(self.data) < min_bars:
+                return
+            
             atr_value = self.atr[-1]
 
             if self.position and crossover(self.ema_long, self.ema_short):
@@ -77,6 +85,10 @@ def createShortOnlyCrossOverStrategy(short_period, long_period, stop_loss_multip
             self.atr = self.I(moving_average.average_true_range, self.data.High, self.data.Low, self.data.Close, 14)
 
         def next(self):
+            min_bars = max(short_period, long_period, 14)
+            if len(self.data) < min_bars:
+                return
+            
             atr_value = self.atr[-1]
 
             if self.position and crossover(self.ema_short, self.ema_long):
