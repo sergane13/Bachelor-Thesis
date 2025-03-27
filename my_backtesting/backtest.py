@@ -4,26 +4,6 @@ from . import constant
 from shared import var_types
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression
-import ta
-
-def get_regime_features(close, high, low, window=30):
-    X = np.arange(len(close[-window:])).reshape(-1, 1)
-    y = close[-window:].values.reshape(-1, 1)
-    linreg = LinearRegression().fit(X, y)
-    slope = linreg.coef_[0][0]
-
-    r_squared = linreg.score(X, y)
-
-    tr = pd.DataFrame({
-        "hl": high - low,
-        "hc": (high - close.shift()).abs(),
-        "lc": (low - close.shift()).abs()
-    }).max(axis=1)
-    atr = tr.rolling(window).mean().iloc[-1]
-    normalized_atr = atr / close.iloc[-1]
-
-    return (slope, r_squared, normalized_atr)
 
 def runBackTest(population, data_set, isShortOnly, emas_data_set = None):
     results_list = []
@@ -77,4 +57,3 @@ def runBackTest(population, data_set, isShortOnly, emas_data_set = None):
     ])
     
     return np.array(results_list, dtype=dtype)
-

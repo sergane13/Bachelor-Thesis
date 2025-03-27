@@ -134,5 +134,13 @@ def run_generation(train_data, isShort = False):
         index += 1
     
     print('')
-    print(isShort, "Best offsprings: ", offsprings[0], offsprings[1])
+    
+    if isShort:
+        print("Short only offsprings (best ones): ")
+    else:
+        print("Long only offsprings (best ones): ")
+    
+    print(offsprings[0], offsprings[1])
+    print("")
+    
     return offsprings, fitness_scores_generation[-1]

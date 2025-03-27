@@ -10,7 +10,7 @@ NO_IMPROVEMENET = 5
 MIN_IMPROVEMENT = 0.01
 
 MUTATION_PROBABILITY = 0.05 # 5%
-CROSSOVER_RATE = 0.05 # 5%
+CROSSOVER_RATE = 0.01 # 1%
 
 TOTAL_RETURN_COEFICIENT = 1
 # ================================== #
@@ -23,11 +23,11 @@ upper = var_types.UPPER
 GENE_RANGES = {
     var_types.SHORT_MA: {
         lower: 1,
-        upper: 300
+        upper: 400
     },
     var_types.LONG_MA: {
         lower: 1,
-        upper: 300,
+        upper: 400,
     },
     var_types.STOP_LOSS_MULTIPLIER: {
         lower: 0.1,
