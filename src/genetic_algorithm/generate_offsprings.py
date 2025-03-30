@@ -4,6 +4,8 @@ import numpy as np
 from src import var_types
 from . import constants
 
+random.seed(13)
+
 def generate_random_sample(var_type, is_float=False, decimals=0):
     lower = constants.GENE_RANGES[var_type][var_types.LOWER]
     upper = constants.GENE_RANGES[var_type][var_types.UPPER]

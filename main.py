@@ -10,14 +10,13 @@ from src.input_data import plots
 
 # matplotlib.use('Agg')
 
-TRAINING_CHUNKS = 6
+TRAINING_CHUNKS = 10
 TEST_CHUNKS = 5
 
 def run_generation_parallel(train_data, is_short):
     return genetic_algorithm.run_generation(train_data, is_short)
 
 # TODO: Save individuals and in what market regimes they were trained and deploy them as things evolve
-# TODO: play with different fitness functions to see the output.
 # TODO: Add market regime into trading strategy so strategy adapts live to it.
 # TODO: Add money management and if losses are ncreasing cut trades, or if a loss was hit
 if __name__ == "__main__":
@@ -52,6 +51,8 @@ if __name__ == "__main__":
         
         individuals_performance_long = run_backtest.run_backtest(population_long[0:constants.TOP_PICK], test_data, False, emas_data)
         individuals_performance_short = run_backtest.run_backtest(population_short[0:constants.TOP_PICK], test_data, True, emas_data)
+        
+        print(individuals_performance_long[0][10])
         
         returns_long = np.array([ind[4] for ind in individuals_performance_long])
         drawdowns_long = np.array([ind[5] for ind in individuals_performance_long]) 

@@ -6,6 +6,8 @@ import random
 import copy
 import numpy as np
 
+random.seed(13)
+
 def fitness_function(individuals):
     ind_return = individuals[var_types.RETURN] 
     ind_drawdown = individuals[var_types.MAX_DRAWDOWN]
@@ -14,7 +16,10 @@ def fitness_function(individuals):
     score = ind_return / drawdown_penalty
     final_score = np.maximum(0, score)
     
-    invalid_logic = individuals[var_types.SHORT_MA] > individuals[var_types.LONG_MA]
+    short_ma = individuals[var_types.SHORT_MA]
+    long_ma = individuals[var_types.LONG_MA]
+
+    invalid_logic = (short_ma >= long_ma) | ((long_ma - short_ma) < 10)
     final_score[invalid_logic] = 0
     
     scored_individuals = np.zeros(len(individuals), dtype=constants.INDIVIDUAL_TYPE_SCORE)

@@ -34,16 +34,16 @@ def load_market_data(
     return df
 
 
-SPX, SPX_CHUNKS = load_market_data(
-    path='./data/S&P500.csv',
-    datetime_col='Date',
-    reverse=False,
-    chunk_size=100
-)
+# SPX, SPX_CHUNKS = load_market_data(
+#     path='./data/S&P500.csv',
+#     datetime_col='Date',
+#     reverse=False,
+#     chunk_size=100
+# )
 
 BTC, BTC_CHUNKS = load_market_data(
     path='./data/BTC_2018_2025_1h.csv',
-    datetime_col='date',
+    datetime_col='Date',
     reverse=True,
     chunk_size=100
 )
@@ -51,20 +51,20 @@ BTC, BTC_CHUNKS = load_market_data(
 HOT, HOT_CHUNKS = load_market_data(
     path='./data/HOTUSDT_2019_2025_1h.csv',
     datetime_col='datetime',
-    reverse=True,
-    chunk_size=100
-)
-
-BTC_5M, BTC_5M_CHUNKS = load_market_data(
-    path='./data/BTC_2011_2021_5m.csv',
-    datetime_col='Timestamp',
     reverse=False,
     chunk_size=100
 )
 
-TQQQ, TQQQ_CHUNKS = load_market_data(
-    path='./data/TQQQ_10Years.csv',
-    datetime_col='Date',
-    reverse=True,
-    chunk_size=100
-)
+# BTC_5M, BTC_5M_CHUNKS = load_market_data(
+#     path='./data/BTC_2011_2021_5m.csv',
+#     datetime_col='Timestamp',
+#     reverse=False,
+#     chunk_size=100
+# )
+
+# TQQQ, TQQQ_CHUNKS = load_market_data(
+#     path='./data/TQQQ_10Years.csv',
+#     datetime_col='Date',
+#     reverse=True,
+#     chunk_size=100
+# )
