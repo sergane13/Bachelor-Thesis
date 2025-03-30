@@ -52,19 +52,27 @@ HOT, HOT_CHUNKS = load_market_data(
     path='./data/HOTUSDT_2019_2025_1h.csv',
     datetime_col='datetime',
     reverse=False,
+    chunk_size=400
+)
+
+DOT, DOT_CHUNKS = load_market_data(
+    path='./data/DOTUSDT_2020_2024_15M.csv',
+    datetime_col='datetime',
+    reverse=False,
     chunk_size=100
 )
 
-# BTC_5M, BTC_5M_CHUNKS = load_market_data(
-#     path='./data/BTC_2011_2021_5m.csv',
-#     datetime_col='Timestamp',
-#     reverse=False,
-#     chunk_size=100
-# )
 
-# TQQQ, TQQQ_CHUNKS = load_market_data(
-#     path='./data/TQQQ_10Years.csv',
-#     datetime_col='Date',
-#     reverse=True,
-#     chunk_size=100
-# )
+BTC_5M, BTC_5M_CHUNKS = load_market_data(
+    path='./data/BTC_2011_2021_5m.csv',
+    datetime_col='Timestamp',
+    reverse=False,
+    chunk_size=500
+)
+
+TQQQ, TQQQ_CHUNKS = load_market_data(
+    path='./data/TQQQ_10Years.csv',
+    datetime_col='Date',
+    reverse=True,
+    chunk_size=100
+)

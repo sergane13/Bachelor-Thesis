@@ -11,7 +11,7 @@ random.seed(13)
 def fitness_function(individuals):
     ind_return = individuals[var_types.RETURN] 
     ind_drawdown = individuals[var_types.MAX_DRAWDOWN]
-        
+    
     drawdown_penalty = (np.abs(ind_drawdown) + 1e-1) ** 0.8
     score = ind_return / drawdown_penalty
     final_score = np.maximum(0, score)

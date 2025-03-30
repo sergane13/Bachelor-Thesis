@@ -3,7 +3,6 @@ import pandas as pd
 import multiprocessing as mp
 
 from src.genetic_algorithm import genetic_algorithm, constants
-from src.backtesting_engine import indicators
 from src.backtesting_engine import run_backtest
 from src.input_data import input_data
 from src.input_data import plots
@@ -20,7 +19,7 @@ def run_generation_parallel(train_data, is_short):
 # TODO: Add market regime into trading strategy so strategy adapts live to it.
 # TODO: Add money management and if losses are ncreasing cut trades, or if a loss was hit
 if __name__ == "__main__":
-    current_input_data = input_data.BTC_CHUNKS
+    current_input_data = input_data.DOT_CHUNKS
     total_combined_returns = []
     
     plots.clear_folder('algo_plots')
@@ -70,12 +69,12 @@ if __name__ == "__main__":
         # ----------- Plots -----------
         
         # for ind in individuals_performance_long:
-        #     plot_chunk_with_emas(train_data, ind[0], ind[1], price_col='Close', output_folder=f'algo_plots/plots_{i}', filename=f'train_{i}_generation_{ind[0]}_{ind[1]}_long')
-        #     plot_chunk_with_emas(test_data, ind[0], ind[1], price_col='Close', output_folder=f'algo_plots/plots_{i}', filename=f'test_{i}_generation_{ind[0]}_{ind[1]}_long')
+        #     plots.plot_chunk_with_emas(train_data, ind[0], ind[1], price_col='Close', output_folder=f'algo_plots/plots_{i}', filename=f'train_{i}_generation_{ind[0]}_{ind[1]}_long')
+        #     plots.plot_chunk_with_emas(test_data, ind[0], ind[1], price_col='Close', output_folder=f'algo_plots/plots_{i}', filename=f'test_{i}_generation_{ind[0]}_{ind[1]}_long')
 
         # for ind in individuals_performance_short:
-        #     plot_chunk_with_emas(train_data, ind[0], ind[1], price_col='Close', output_folder=f'algo_plots/plots_{i}', filename=f'train_{i}_generation_{ind[0]}_{ind[1]}_short')
-        #     plot_chunk_with_emas(test_data, ind[0], ind[1], price_col='Close', output_folder=f'algo_plots/plots_{i}', filename=f'test_{i}_generation_{ind[0]}_{ind[1]}_short')
+        #     plots.plot_chunk_with_emas(train_data, ind[0], ind[1], price_col='Close', output_folder=f'algo_plots/plots_{i}', filename=f'train_{i}_generation_{ind[0]}_{ind[1]}_short')
+        #     plots.plot_chunk_with_emas(test_data, ind[0], ind[1], price_col='Close', output_folder=f'algo_plots/plots_{i}', filename=f'test_{i}_generation_{ind[0]}_{ind[1]}_short')
 
         # ----------- End Plots -----------
                 
