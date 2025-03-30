@@ -1,7 +1,7 @@
 import random
 import numpy as np
 
-from shared import var_types
+from src import var_types
 from . import constants
 
 def generate_random_sample(var_type, is_float=False, decimals=0):
@@ -39,12 +39,5 @@ def generatePopulation(population = 100):
         if individual not in seen_individuals:
             seen_individuals.add(individual)
             created_population.append(individual)
-
-    individual_dtype = np.dtype([
-        (var_types.SHORT_MA, np.int32),
-        (var_types.LONG_MA, np.int32),
-        (var_types.STOP_LOSS_MULTIPLIER, np.float32),
-        (var_types.POSITION_SIZE, np.float32)
-    ])
     
-    return  np.array(created_population, dtype=individual_dtype)
+    return  np.array(created_population, dtype=constants.INDIVIDUAL_TYPE)

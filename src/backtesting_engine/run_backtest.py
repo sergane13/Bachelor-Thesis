@@ -1,11 +1,10 @@
 from backtesting import Backtest
 from . import strategies
-from . import constant
-from shared import var_types
+from . import constants
 import numpy as np
 import pandas as pd
 
-def runBackTest(population, data_set, isShortOnly, emas_data_set = None):
+def run_backtest(population, data_set, isShortOnly, emas_data_set = None):
     results_list = []
     
     for offspring in population:
@@ -22,38 +21,28 @@ def runBackTest(population, data_set, isShortOnly, emas_data_set = None):
 
         if isShortOnly:
             ShortOnlyCrossOverStrategy = strategies.createShortOnlyCrossOverStrategy(short_ma, long_ma, stop_loss_multiplier, position_size)
-            bt = Backtest(data_set, ShortOnlyCrossOverStrategy, cash=constant.INITIAL_CAPITAL, commission=constant.COMMISSION)
+            bt = Backtest(data_set, ShortOnlyCrossOverStrategy, cash=constants.INITIAL_CAPITAL, commission=constants.COMMISSION)
         else:
             LongOnlyCrossOverStrategy = strategies.createLongOnlyCrossOverStrategy(short_ma, long_ma, stop_loss_multiplier, position_size)
-            bt = Backtest(data_set, LongOnlyCrossOverStrategy, cash=constant.INITIAL_CAPITAL, commission=constant.COMMISSION)
+            bt = Backtest(data_set, LongOnlyCrossOverStrategy, cash=constants.INITIAL_CAPITAL, commission=constants.COMMISSION)
         
         result = bt.run()
         
-        duration = result[constant.DURATION]
+        duration = result[constants.DURATION]
         if isinstance(duration, pd.Timedelta):
             duration = duration / pd.Timedelta(days=1)
             
+        trades = result[constants.TRADES]
+            
         results_list.append((
             short_ma, long_ma, stop_loss_multiplier, position_size, 
-            result[constant.RETURN], 
-            result[constant.MAX_DRAWDOWN],
-            result[constant.BUY_AND_HOLD],
+            result[constants.RETURN], 
+            result[constants.MAX_DRAWDOWN],
+            result[constants.BUY_AND_HOLD],
             duration,
-            result[constant.TRADES_NUMBER],
-            result[constant.EXPOSURE_TIME]
+            result[constants.TRADES_NUMBER],
+            result[constants.EXPOSURE_TIME],
+            trades,
         ))
     
-    dtype = np.dtype([
-        (var_types.SHORT_MA, np.int32),
-        (var_types.LONG_MA, np.int32),
-        (var_types.STOP_LOSS_MULTIPLIER, np.float32),
-        (var_types.POSITION_SIZE, np.float32),
-        (var_types.RETURN, np.float32),
-        (var_types.MAX_DRAWDOWN, np.float32),
-        (var_types.BUY_AND_HOLD, np.float32),
-        (var_types.DURATION, np.float32),
-        (var_types.TRADES_NUMBER, np.float32),
-        (var_types.EXPOSURE_TIME, np.float32),
-    ])
-    
-    return np.array(results_list, dtype=dtype)
+    return np.array(results_list, dtype=constants.INDIVIDUAL_METRICS)

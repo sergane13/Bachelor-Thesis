@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from regimes import regime
+from scipy.stats import linregress
 
 def average_true_range(high, low, close, period=14):
     high = pd.Series(high)
@@ -31,25 +31,19 @@ def double_exponential_moving_average(series, period):
     ema2 = ema1.ewm(span=period, adjust=False).mean()
     return 2 * ema1 - ema2
 
-def r_squared(prices, window):
-    prices = np.asarray(prices)
-    r2 = np.full_like(prices, fill_value=np.nan, dtype=float)
+def triple_exponential_moving_average(series, period):
+    series = pd.Series(series)
+    ema1 = series.ewm(span=period, adjust=False).mean()
+    ema2 = ema1.ewm(span=period, adjust=False).mean()
+    ema3 = ema2.ewm(span=period, adjust=False).mean()
+    tema = 3 * (ema1 - ema2) + ema3
+    return tema
 
-    x = np.arange(window)
+def compute_regime_details(series):
+    y = np.array(series)
+    x = np.arange(len(y))
 
-    for i in range(window, len(prices)):
-        y = prices[i - window:i]
-        if np.any(np.isnan(y)):
-            continue
+    slope, intercept, r_value, p_value, std_err = linregress(x, y)
+    return slope
 
-        A = np.vstack([x, np.ones_like(x)]).T
-        slope, intercept = np.linalg.lstsq(A, y, rcond=None)[0]
-        y_pred = slope * x + intercept
-
-        ss_res = np.sum((y - y_pred) ** 2)
-        ss_tot = np.sum((y - np.mean(y)) ** 2)
-
-        r2[i] = 1 - (ss_res / ss_tot) if ss_tot != 0 else 0
-
-    return r2
 

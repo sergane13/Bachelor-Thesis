@@ -1,19 +1,28 @@
-from . import population
+from . import generate_offsprings
 from . import constants
-from shared import var_types
-from my_backtesting import backtest
+from src import var_types
+from src.backtesting_engine import run_backtest
 import random
 import copy
 import numpy as np
 
 def fitness_function(individuals):
-    scores = np.maximum(0, individuals[var_types.RETURN])
+    ind_return = individuals[var_types.RETURN] 
+    ind_drawdown = individuals[var_types.MAX_DRAWDOWN]
+        
+    drawdown_penalty = (np.abs(ind_drawdown) + 1e-1) ** 0.8
+    score = ind_return / drawdown_penalty
+    final_score = np.maximum(0, score)
+    
+    invalid_logic = individuals[var_types.SHORT_MA] > individuals[var_types.LONG_MA]
+    final_score[invalid_logic] = 0
+    
     scored_individuals = np.zeros(len(individuals), dtype=constants.INDIVIDUAL_TYPE_SCORE)
     scored_individuals[var_types.SHORT_MA] = individuals[var_types.SHORT_MA]
     scored_individuals[var_types.LONG_MA] = individuals[var_types.LONG_MA]
     scored_individuals[var_types.STOP_LOSS_MULTIPLIER] = individuals[var_types.STOP_LOSS_MULTIPLIER]
     scored_individuals[var_types.POSITION_SIZE] = individuals[var_types.POSITION_SIZE]
-    scored_individuals[var_types.SCORE] = scores
+    scored_individuals[var_types.SCORE] = final_score
 
     sorted_individuals = np.sort(scored_individuals, order=var_types.SCORE)[::-1]
     return sorted_individuals
@@ -22,7 +31,7 @@ def wheel_of_fortune(individuals):
     fitness_scores = np.array([ind[-1] for ind in individuals], dtype=np.float32)
     
     if (np.sum(fitness_scores) == 0):
-        return  population.generatePopulation(constants.WHEEL_OF_FORTUNE)
+        return  generate_offsprings.generatePopulation(constants.WHEEL_OF_FORTUNE)
         
     selection_probabilities = fitness_scores / np.sum(fitness_scores)
     
@@ -67,13 +76,13 @@ def mutation(individuals):
         for index, _ in enumerate(mutated_individual):
             if random.random() < constants.MUTATION_PROBABILITY:            
                 if index == 0:
-                    mutated_individual[0] = population.generate_Short_MA()
+                    mutated_individual[0] = generate_offsprings.generate_Short_MA()
                 elif index == 1:
-                    mutated_individual[1] = population.generate_Long_MA()
+                    mutated_individual[1] = generate_offsprings.generate_Long_MA()
                 elif index == 2:
-                    mutated_individual[2] = population.generate_Stop_Loss_Multiplier()
+                    mutated_individual[2] = generate_offsprings.generate_Stop_Loss_Multiplier()
                 elif index == 3:
-                    mutated_individual[3] = population.generate_Position_Size()
+                    mutated_individual[3] = generate_offsprings.generate_Position_Size()
 
         mutated_individuals.append(tuple(mutated_individual))
     
@@ -94,7 +103,7 @@ def create_new_generation(individuals):
     top_individuals = return_top_individuals(individuals)
     remaining_individuals = individuals[constants.TOP_PICK:-constants.RANDOM_INDIVIDUALS]
     selected_individuals_by_wheel_of_fortune = wheel_of_fortune(remaining_individuals)
-    random_individuals = population.generatePopulation(constants.RANDOM_INDIVIDUALS)
+    random_individuals = generate_offsprings.generatePopulation(constants.RANDOM_INDIVIDUALS)
     
     assert len(individuals) - len(top_individuals) == len(selected_individuals_by_wheel_of_fortune) + len(random_individuals)
     offsprings = np.concatenate((selected_individuals_by_wheel_of_fortune, random_individuals), axis=0)
@@ -108,13 +117,13 @@ def create_new_generation(individuals):
 ##
 def run_generation(train_data, isShort = False):
     fitness_scores_generation = []
-    offsprings = population.generatePopulation(constants.POPULATION_SIZE)
+    offsprings = generate_offsprings.generatePopulation(constants.POPULATION_SIZE)
     
     index = 0
     while True:
         print(f"Generation: {index}")
         
-        individuals_performance = backtest.runBackTest(offsprings, train_data, isShort)
+        individuals_performance = run_backtest.run_backtest(offsprings, train_data, isShort)
         individuals_score = fitness_function(individuals_performance)
         
         fitness_scores = np.array([ind[-1] for ind in individuals_score], dtype=np.float32)

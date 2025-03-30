@@ -11,6 +11,7 @@ BUY_AND_HOLD = 'buy_and_hold'
 DURATION = "duration"
 TRADES_NUMBER = "trades_number"
 EXPOSURE_TIME = "exposure_time"
+TRADES = "_trades"
 
 LOWER = 'lower'
 UPPER = 'upper'
