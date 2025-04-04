@@ -12,6 +12,7 @@ DURATION = "duration"
 TRADES_NUMBER = "trades_number"
 EXPOSURE_TIME = "exposure_time"
 TRADES = "_trades"
+SHARPE_RATIO = "sharp_ratio"
 
 LOWER = 'lower'
 UPPER = 'upper'

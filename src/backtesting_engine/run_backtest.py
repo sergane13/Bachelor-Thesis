@@ -15,16 +15,16 @@ def run_backtest(population, data_set, isShortOnly, emas_data_set = None):
         
         if emas_data_set is not None:
             past_data_size = max(short_ma, long_ma)
-            emas_data_set = emas_data_set[-past_data_size:]
-            data_set = pd.concat([emas_data_set, data_set])
-            data_set = data_set.sort_index()
-
+            emas_data_set_last_relevant = emas_data_set[-past_data_size:]
+            combined_data = pd.concat([emas_data_set_last_relevant, data_set])
+            combined_data = combined_data.sort_index()
+        
         if isShortOnly:
             ShortOnlyCrossOverStrategy = strategies.createShortOnlyCrossOverStrategy(short_ma, long_ma, stop_loss_multiplier, position_size)
-            bt = Backtest(data_set, ShortOnlyCrossOverStrategy, cash=constants.INITIAL_CAPITAL, commission=constants.COMMISSION)
+            bt = Backtest(combined_data, ShortOnlyCrossOverStrategy, cash=constants.INITIAL_CAPITAL, commission=constants.COMMISSION)
         else:
             LongOnlyCrossOverStrategy = strategies.createLongOnlyCrossOverStrategy(short_ma, long_ma, stop_loss_multiplier, position_size)
-            bt = Backtest(data_set, LongOnlyCrossOverStrategy, cash=constants.INITIAL_CAPITAL, commission=constants.COMMISSION)
+            bt = Backtest(combined_data, LongOnlyCrossOverStrategy, cash=constants.INITIAL_CAPITAL, commission=constants.COMMISSION)
         
         result = bt.run()
         
@@ -32,7 +32,7 @@ def run_backtest(population, data_set, isShortOnly, emas_data_set = None):
         if isinstance(duration, pd.Timedelta):
             duration = duration / pd.Timedelta(days=1)
             
-        trades = result[constants.TRADES]
+        # trades = result[constants.TRADES]
             
         results_list.append((
             short_ma, long_ma, stop_loss_multiplier, position_size, 
@@ -42,7 +42,7 @@ def run_backtest(population, data_set, isShortOnly, emas_data_set = None):
             duration,
             result[constants.TRADES_NUMBER],
             result[constants.EXPOSURE_TIME],
-            trades,
+            result[constants.SHARPE_RATIO],
         ))
     
     return np.array(results_list, dtype=constants.INDIVIDUAL_METRICS)

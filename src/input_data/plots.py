@@ -60,3 +60,22 @@ def clear_folder(parent_folder):
         item_path = os.path.join(parent_folder, item)
         if os.path.isdir(item_path):
             shutil.rmtree(item_path)
+            
+def validate_warmup_main_no_internal_duplicates(name, warmup_df, main_df):
+    import pandas as pd
+
+    combined = pd.concat([
+        warmup_df.assign(_source=f'{name}_warmup'),
+        main_df.assign(_source=f'{name}_main')
+    ])
+
+    duplicated = combined.index[combined.index.duplicated(keep=False)]
+
+    if len(duplicated) > 0:
+        print(f"❌ Duplicate timestamps between `{name}_warmup` and `{name}_main` detected! ({len(duplicated)} total)")
+        print("Examples:")
+        print(combined.loc[duplicated].sort_index().head(10))
+        return False
+    else:
+        print(f"✅ No duplicate timestamps found between `{name}_warmup` and `{name}_main`.")
+        return True

@@ -9,7 +9,10 @@ def createLongOnlyCrossOverStrategy(short_period, long_period, stop_loss_multipl
             self.ema_long = self.I(indicators.double_exponential_moving_average, self.data.Close, long_period)
             self.atr = self.I(indicators.average_true_range, self.data.High, self.data.Low, self.data.Close, 14)
             self.initialized = False
-            self.highest_price = None 
+            self.highest_price = None
+            self.current_position_size = position_size
+            self.min_position_size = 0.25
+            self.last_entry_price = None
 
         def next(self):
             min_bars = max(short_period, long_period, 14)
@@ -27,19 +30,23 @@ def createLongOnlyCrossOverStrategy(short_period, long_period, stop_loss_multipl
 
                 trailing_stop = self.highest_price - (atr_value * stop_loss_multiplier)
 
-                if close_price < trailing_stop:
+                if close_price < trailing_stop or crossover(self.ema_long, self.ema_short):
+                    entry_price = self.last_entry_price or close_price
+                    profit = close_price - entry_price
+
+                    if profit < 0:
+                        self.current_position_size = max(self.current_position_size / 2, self.min_position_size)
+                    else:
+                        self.current_position_size = position_size
+
                     self.position.close()
                     self.highest_price = None
+                    self.last_entry_price = None
                     return
 
-                if crossover(self.ema_long, self.ema_short):
-                    self.position.close()
-                    self.highest_price = None
-                    return
+                return
 
-                return 
-
-            cash_available = self.equity * position_size
+            cash_available = self.equity * self.current_position_size
             size = int(cash_available / close_price)
             if size < 1:
                 return
@@ -56,6 +63,7 @@ def createLongOnlyCrossOverStrategy(short_period, long_period, stop_loss_multipl
             if should_enter:
                 self.buy(size=size)
                 self.highest_price = close_price
+                self.last_entry_price = close_price
 
     return LongOnlyCrossOverStrategy
 
@@ -68,7 +76,10 @@ def createShortOnlyCrossOverStrategy(short_period, long_period, stop_loss_multip
             self.atr = self.I(indicators.average_true_range, self.data.High, self.data.Low, self.data.Close, 14)
             self.initialized = False
             self.lowest_price = None
-            
+            self.current_position_size = position_size
+            self.min_position_size = 0.25
+            self.last_entry_price = None
+
         def next(self):
             min_bars = max(short_period, long_period, 14)
             if len(self.data) < min_bars:
@@ -85,19 +96,23 @@ def createShortOnlyCrossOverStrategy(short_period, long_period, stop_loss_multip
 
                 trailing_stop = self.lowest_price + (atr_value * stop_loss_multiplier)
 
-                if close_price > trailing_stop:
-                    self.position.close()
-                    self.lowest_price = None
-                    return
+                if close_price > trailing_stop or crossover(self.ema_short, self.ema_long):
+                    entry_price = self.last_entry_price or close_price
+                    profit = entry_price - close_price  # invers față de long
 
-                if crossover(self.ema_short, self.ema_long):
+                    if profit < 0:
+                        self.current_position_size = max(self.current_position_size / 2, self.min_position_size)
+                    else:
+                        self.current_position_size = position_size
+
                     self.position.close()
                     self.lowest_price = None
+                    self.last_entry_price = None
                     return
 
                 return
 
-            cash_available = self.equity * position_size
+            cash_available = self.equity * self.current_position_size
             size = int(cash_available / close_price)
             if size < 1:
                 return
@@ -114,5 +129,6 @@ def createShortOnlyCrossOverStrategy(short_period, long_period, stop_loss_multip
             if should_enter:
                 self.sell(size=size)
                 self.lowest_price = close_price
-                
+                self.last_entry_price = close_price
+
     return ShortOnlyCrossOverStrategy

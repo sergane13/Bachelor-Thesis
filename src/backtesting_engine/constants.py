@@ -11,7 +11,10 @@ TRADES = "_trades"
 # ----------- Trading ------------- #
 
 INITIAL_CAPITAL = 200_000
-COMMISSION = 0.0005 # 0.05 %
+COMMISSION = 0.0004 # 0.04 %
+# 0.0180%/0.0450% MAKER | TAKER fees ---> USDT BNB
+# 0.0000%/0.0400% MAKER | TAKER fees ---> USDC
+# 0.0000%/0.0360% MAKER | TAKER fees ---> USDC BNB
 
 # ----------- Types ------------- #
 
@@ -29,5 +32,5 @@ INDIVIDUAL_METRICS = np.dtype([
     (var_types.DURATION, np.float32),
     (var_types.TRADES_NUMBER, np.float32),
     (var_types.EXPOSURE_TIME, np.float32),
-    (var_types.TRADES, object),
+    (var_types.SHARPE_RATIO, np.float32),
 ])

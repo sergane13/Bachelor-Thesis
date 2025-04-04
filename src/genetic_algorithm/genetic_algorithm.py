@@ -8,18 +8,20 @@ import numpy as np
 
 random.seed(13)
 
-def fitness_function(individuals):
-    ind_return = individuals[var_types.RETURN] 
-    ind_drawdown = individuals[var_types.MAX_DRAWDOWN]
-    
-    drawdown_penalty = (np.abs(ind_drawdown) + 1e-1) ** 0.8
-    score = ind_return / drawdown_penalty
-    final_score = np.maximum(0, score)
+def fitness_function(individuals): 
+    sharpe_values = np.nan_to_num(individuals[var_types.SHARPE_RATIO], nan=0.0)
+    rtn = individuals[var_types.RETURN]
+    final_score = np.maximum(0, rtn)
     
     short_ma = individuals[var_types.SHORT_MA]
     long_ma = individuals[var_types.LONG_MA]
-
-    invalid_logic = (short_ma >= long_ma) | ((long_ma - short_ma) < 10)
+    
+    threshold = 0.85
+    ratio = short_ma / long_ma
+    penalty = np.clip((ratio - threshold) / (1 - threshold), 0, 1)
+    final_score *= (1 - penalty)
+    
+    invalid_logic = short_ma >= long_ma
     final_score[invalid_logic] = 0
     
     scored_individuals = np.zeros(len(individuals), dtype=constants.INDIVIDUAL_TYPE_SCORE)
@@ -120,7 +122,7 @@ def create_new_generation(individuals):
 ##
 ## This method runs the genetic algotihm until fitness function has no improvement ##
 ##
-def run_generation(train_data, isShort = False):
+def run_generation(train_data, train_data_ema_warmup, isShort = False):
     fitness_scores_generation = []
     offsprings = generate_offsprings.generatePopulation(constants.POPULATION_SIZE)
     
@@ -128,11 +130,11 @@ def run_generation(train_data, isShort = False):
     while True:
         print(f"Generation: {index}")
         
-        individuals_performance = run_backtest.run_backtest(offsprings, train_data, isShort)
+        individuals_performance = run_backtest.run_backtest(offsprings, train_data, isShort, train_data_ema_warmup)
         individuals_score = fitness_function(individuals_performance)
         
-        fitness_scores = np.array([ind[-1] for ind in individuals_score], dtype=np.float32)
-        fitness_scores_generation.append(np.sum(fitness_scores[0:constants.TOP_PICK]))
+        fitness_scores_sum = np.array([ind[-1] for ind in individuals_score], dtype=np.float32)
+        fitness_scores_generation.append(np.sum(fitness_scores_sum[0:constants.TOP_PICK]))
         
         print("Fitness score: ", fitness_scores_generation[-1])
         
@@ -157,4 +159,4 @@ def run_generation(train_data, isShort = False):
     print(offsprings[0], offsprings[1])
     print("")
     
-    return offsprings, fitness_scores_generation[-1]
+    return offsprings, fitness_scores_sum[0:constants.TOP_PICK]
