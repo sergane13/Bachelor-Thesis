@@ -59,14 +59,14 @@ DOT, DOT_CHUNKS = load_market_data(
     path='./data/DOTUSDT_2020_2024_15M.csv',
     datetime_col='datetime',
     reverse=False,
-    chunk_size=100
+    chunk_size=200
 )
 
 ALGO, ALGO_CHUNKS = load_market_data(
     path='./data/ALGOUSDT_H1.csv',
     datetime_col='datetime',
     reverse=False,
-    chunk_size=100
+    chunk_size=400
 )
 
 ETH, ETH_CHUNKS = load_market_data(
@@ -88,6 +88,13 @@ BTC_15M, BTC_15M_CHUNKS = load_market_data(
     datetime_col='datetime',
     reverse=False,
     chunk_size=100
+)
+
+BTC_1H, BTC_1H_CHUNKS = load_market_data(
+    path='./data/btc_1d_data_2018_to_2025.csv',
+    datetime_col='Open time',
+    reverse=False,
+    chunk_size=200
 )
 
 TQQQ, TQQQ_CHUNKS = load_market_data(

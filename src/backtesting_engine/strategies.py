@@ -98,7 +98,7 @@ def createShortOnlyCrossOverStrategy(short_period, long_period, stop_loss_multip
 
                 if close_price > trailing_stop or crossover(self.ema_short, self.ema_long):
                     entry_price = self.last_entry_price or close_price
-                    profit = entry_price - close_price  # invers față de long
+                    profit = entry_price - close_price
 
                     if profit < 0:
                         self.current_position_size = max(self.current_position_size / 2, self.min_position_size)
