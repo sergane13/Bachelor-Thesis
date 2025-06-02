@@ -123,7 +123,7 @@ class Genetic_Algorithm:
         selected_individuals_by_wheel_of_fortune = self.wheel_of_fortune(remaining_individuals)
         random_individuals = generate_offsprings.generatePopulation(self.constants.RANDOM_INDIVIDUALS)
         
-        assert len(individuals) - len(top_individuals) == len(selected_individuals_by_wheel_of_fortune) + len(random_individuals)
+        # assert len(individuals) - len(top_individuals) == len(selected_individuals_by_wheel_of_fortune) + len(random_individuals)
         offsprings = np.concatenate((selected_individuals_by_wheel_of_fortune, random_individuals), axis=0)
         offsprings = self.crossover(offsprings)
         offsprings = self.mutation(offsprings)

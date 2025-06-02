@@ -2,7 +2,7 @@ import random
 import numpy as np
 import multiprocessing as mp
 from . import constants
-from src.meta_genetic_algo.generate_offsrings import generate_random_sample, generate_meta_population
+from src.meta_genetic_algo.generate_offsrings import generate_random_sample, generate_meta_population, generate_meta_individual
 from src.trading_genetic_algo.genetic_algorithm import Genetic_Algorithm 
 
 def evaluate_meta_individual(ind, train_data, train_data_ema_warmup):
@@ -45,15 +45,19 @@ def evaluate_meta_individual(ind, train_data, train_data_ema_warmup):
 class MetaGeneticAlgorithm:
     def __init__(self, train_data, train_data_ema_warmup,
                 population_size=8,
-                generations=6,
+                generations=4,
                 top_k=2,
-                mutation_rate=0.005):
+                mutation_rate=0.005,
+                crossover_rate=0.02,
+                random_injection_ratio=0.2):
         self.train_data = train_data
         self.train_data_ema_warmup = train_data_ema_warmup
         self.population_size = population_size
         self.generations = generations
         self.top_k = top_k
         self.mutation_rate = mutation_rate
+        self.crossover_rate = crossover_rate
+        self.random_injection_ratio = random_injection_ratio
 
     def run(self):
         population = generate_meta_population(self.population_size)
@@ -79,19 +83,42 @@ class MetaGeneticAlgorithm:
 
             top_individuals = [ind for _, ind, _, _ in scored[:self.top_k]]
 
+            population_all = [ind for _, ind, _, _ in scored]
+            scores_all = [score for score, _, _, _ in scored]
+            total_score = sum(scores_all)
+            if total_score == 0:
+                probabilities = [1 / len(scores_all)] * len(scores_all)
+            else:
+                probabilities = [s / total_score for s in scores_all]
+
             new_population = top_individuals.copy()
-            while len(new_population) < self.population_size:
-                p1 = random.choice(top_individuals)
-                p2 = random.choice(top_individuals)
-                child = self.crossover(p1, p2)
+
+            remaining = self.population_size - len(new_population)
+            num_random = int(remaining * self.random_injection_ratio)
+            num_children = remaining - num_random
+
+            for _ in range(num_children):
+                p1 = random.choices(population_all, weights=probabilities, k=1)[0]
+                p2 = random.choices(population_all, weights=probabilities, k=1)[0]
+
+                if random.random() < self.crossover_rate:
+                    child = self.crossover(p1, p2)
+                else:
+                    child = random.choice([p1, p2])
+
                 child = self.mutate(child)
                 new_population.append(child)
+
+            for _ in range(num_random):
+                new_population.append(generate_meta_individual())
 
             population = new_population
 
         return best_ind
 
     def crossover(self, p1, p2):
+        p1 = tuple(p1)
+        p2 = tuple(p2)
         cut = random.randint(1, len(p1) - 2)
         return p1[:cut] + p2[cut:]
 
