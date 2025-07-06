@@ -21,9 +21,11 @@ def run_backtest(population, data_set, isShortOnly, emas_data_set = None):
         
         if isShortOnly:
             ShortOnlyCrossOverStrategy = strategies.createShortOnlyCrossOverStrategy(short_ma, long_ma, stop_loss_multiplier, position_size)
+            # ShortOnlyCrossOverStrategy = strategies.createShortOnlyCrossOverStrategy_1(short_ma, long_ma, position_size)
             bt = Backtest(combined_data, ShortOnlyCrossOverStrategy, cash=constants.INITIAL_CAPITAL, commission=constants.COMMISSION)
         else:
             LongOnlyCrossOverStrategy = strategies.createLongOnlyCrossOverStrategy(short_ma, long_ma, stop_loss_multiplier, position_size)
+            # LongOnlyCrossOverStrategy = strategies.createLongOnlyCrossOverStrategy_1(short_ma, long_ma, position_size)
             bt = Backtest(combined_data, LongOnlyCrossOverStrategy, cash=constants.INITIAL_CAPITAL, commission=constants.COMMISSION)
         
         result = bt.run()

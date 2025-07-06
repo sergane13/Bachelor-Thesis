@@ -132,3 +132,51 @@ def createShortOnlyCrossOverStrategy(short_period, long_period, stop_loss_multip
                 self.last_entry_price = close_price
 
     return ShortOnlyCrossOverStrategy
+
+
+
+
+def createShortOnlyCrossOverStrategy_1(short_period, long_period, position_size=1):
+    class ShortOnlyCrossOverStrategy(Strategy):
+        def init(self):
+            self.ema_short = self.I(indicators.double_exponential_moving_average, self.data.Close, short_period)
+            self.ema_long = self.I(indicators.double_exponential_moving_average, self.data.Close, long_period)
+
+        def next(self):
+            if len(self.data) < max(short_period, long_period):
+                return
+
+            if self.position:
+                if crossover(self.ema_short, self.ema_long):
+                    self.position.close()
+                return
+
+            if crossover(self.ema_long, self.ema_short):
+                size = int(self.equity * position_size / self.data.Close[-1])
+                if size >= 1:
+                    self.sell(size=size)
+
+    return ShortOnlyCrossOverStrategy
+
+
+def createLongOnlyCrossOverStrategy_1(short_period, long_period, position_size=1):
+    class LongOnlyCrossOverStrategy(Strategy):
+        def init(self):
+            self.ema_short = self.I(indicators.double_exponential_moving_average, self.data.Close, short_period)
+            self.ema_long = self.I(indicators.double_exponential_moving_average, self.data.Close, long_period)
+
+        def next(self):
+            if len(self.data) < max(short_period, long_period):
+                return
+
+            if self.position:
+                if crossover(self.ema_long, self.ema_short):
+                    self.position.close()
+                return
+
+            if crossover(self.ema_short, self.ema_long):
+                size = int(self.equity * position_size / self.data.Close[-1])
+                if size >= 1:
+                    self.buy(size=size)
+
+    return LongOnlyCrossOverStrategy

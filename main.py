@@ -17,8 +17,24 @@ from src.trading_genetic_algo.genetic_algorithm import Genetic_Algorithm
 
 # matplotlib.use('Agg')
 
-TRAINING_CHUNKS = 10
-TEST_CHUNKS = 8
+TRAINING_CHUNKS = 100
+TEST_CHUNKS = 100
+
+def apply_dynamic_capital_adjustment(returns, initial_allocation=1.0):
+    capital_allocation = initial_allocation
+    capital_history = []
+
+    for ret in returns:
+        effective_return = capital_allocation * ret
+        capital_history.append(effective_return)
+
+        if effective_return < 0:
+            capital_allocation = max(0.5, capital_allocation - 0.25)
+        else:
+            capital_allocation = min(1.0, capital_allocation + 0.25)
+
+    return capital_history
+
 
 def save_backtest_result(index, average_return_long, average_drawdown_long, returns_long, drawdowns_long,
                          average_return_short, average_drawdown_short, returns_short, drawdowns_short,
@@ -60,7 +76,7 @@ def run_generation_parallel(method, is_short):
 # TODO: Save individuals and in what market regimes they were trained and deploy them as things evolve
 # TODO: Add a meta genetic algorithm to find the best parameters for the final algo
 if __name__ == "__main__":
-    current_input_data = input_data.HOT_CHUNKS
+    current_input_data = input_data.BTC_CHUNKS
     total_combined_returns = []
     
     plots.clear_folder('algo_plots')
@@ -90,10 +106,10 @@ if __name__ == "__main__":
             .Builder()
             .set_population_size(100)
             .set_top_pick(2)
-            .set_wheel_of_fortune(78)
-            .set_random_individual(20)
-            .set_mutation_probability(0.001)
-            .set_crossover_rate(0.01)
+            .set_wheel_of_fortune(88)
+            .set_random_individual(10)
+            .set_mutation_probability(0.035)
+            .set_crossover_rate(0.08)
             .set_no_improvement(5)
             .set_min_improvement(0.001)
             .build()
@@ -190,4 +206,5 @@ if __name__ == "__main__":
         
         total_combined_returns.append(average_return_total)
     
-    plots.plot_cumulative_returns_with_drawdown(total_combined_returns)
+    adjusted_returns = apply_dynamic_capital_adjustment(total_combined_returns)
+    plots.plot_cumulative_returns_with_drawdown(adjusted_returns)
